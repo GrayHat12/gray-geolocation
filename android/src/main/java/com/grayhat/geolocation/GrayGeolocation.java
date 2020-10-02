@@ -1,17 +1,15 @@
 package com.grayhat.geolocation;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationManager;
-import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
+
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Logger;
 import com.getcapacitor.NativePlugin;
@@ -22,7 +20,6 @@ import com.getcapacitor.PluginRequestCodes;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -32,13 +29,12 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import java.util.HashMap;
-import java.util.Map;
+
 
 @NativePlugin(
-    permissions = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION },
-    permissionRequestCode = PluginRequestCodes.GEOLOCATION_REQUEST_PERMISSIONS,
-    requestCodes = {GrayGeolocation.REQUEST_CHECK_SETTING}
+        permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+        permissionRequestCode = PluginRequestCodes.GEOLOCATION_REQUEST_PERMISSIONS,
+        requestCodes = {GrayGeolocation.REQUEST_CHECK_SETTING}
 )
 public class GrayGeolocation extends Plugin {
     protected final static int REQUEST_CHECK_SETTING = 13451;
@@ -48,7 +44,67 @@ public class GrayGeolocation extends Plugin {
     public void turnLocationOn(PluginCall call) {
         saveCall(call);
         //pluginRequestAllPermissions();
-        askPermission();
+        if (!hasRequiredPermissions()) {
+            pluginRequestAllPermissions();
+        } else {
+            askPermission();
+        }
+        ;
+    }
+
+    @PluginMethod
+    public void getCurrentPosition(PluginCall call) {
+        saveCall(call);
+        //pluginRequestAllPermissions();
+        //askPermission();
+        returnCoords();
+    }
+
+    @SuppressLint("MissingPermission")
+    private void returnCoords() {
+        final PluginCall call = getSavedCall();
+        FusedLocationProviderClient fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient((Activity) getContext());
+
+        if (hasRequiredPermissions()) {
+            LocationRequest mLocationRequest = LocationRequest.create();
+            mLocationRequest.setInterval(60000);
+            mLocationRequest.setFastestInterval(5000);
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            LocationCallback mLocationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    super.onLocationResult(locationResult);
+                    Location location = locationResult.getLocations().get(0);
+                    if (location != null) {
+                        JSObject object = new JSObject();
+                        object.put("longitude",location.getLongitude());
+                        object.put("latitude",location.getLatitude());
+                        call.success(object);
+                    }else {
+                        call.reject("Some error occured");
+                    }
+                }
+            };
+            fusedLocationProviderClient.requestLocationUpdates(mLocationRequest,mLocationCallback,null);
+            /*fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+                @Override
+                public void onComplete(@NonNull Task<Location> task) {
+                    Location location = task.getResult();
+                    if(location != null) {
+                        //Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
+                        JSObject object = new JSObject();
+                        object.put("longitude",location.getLongitude());
+                        object.put("latitude",location.getLatitude());
+                        call.success(object);
+                    }else {
+                        call.reject("Some error occured");
+                    }
+                }
+            });*/
+        }
+        else {
+            call.error("Lacking Permission");
+        }
     }
 
     @Override

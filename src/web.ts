@@ -11,8 +11,14 @@ export class GrayGeolocationWeb extends WebPlugin implements GrayGeolocationPlug
     });
   }
 
-  async turnLocationOn(): Promise<{res:boolean}> {
-    return {res:true};
+  getCurrentPosition(): Promise<{ latitude: number, longitude: number }> {
+    return new Promise((resolve, reject) => {
+      window.navigator.geolocation.getCurrentPosition(pos => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }), err => reject(err));
+    });
+  }
+
+  async turnLocationOn(): Promise<{ res: boolean }> {
+    return { res: true };
   }
 
 }

@@ -13,4 +13,11 @@ public class GrayGeolocation: CAPPlugin {
             res: true
         ])
     }
+
+    @objc func echo(_ call: CAPPluginCall) {
+        call.success([
+            latitude: 0
+            longitude: 0
+        ])
+    }
 }

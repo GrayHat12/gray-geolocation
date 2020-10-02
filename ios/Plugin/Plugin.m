@@ -5,4 +5,5 @@
 // each method the plugin supports using the CAP_PLUGIN_METHOD macro.
 CAP_PLUGIN(GrayGeolocation, "GrayGeolocation",
            CAP_PLUGIN_METHOD(turnLocationOn, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(getCurrentPosition,CAPPluginReturnPromise);
 )

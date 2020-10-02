@@ -6,5 +6,6 @@ declare module '@capacitor/core' {
 }
 
 export interface GrayGeolocationPlugin {
-  turnLocationOn(): Promise<{res:boolean}>;
+  turnLocationOn(): Promise<{ res: boolean }>;
+  getCurrentPosition(): Promise<{ latitude: number, longitude: number }>;
 }
