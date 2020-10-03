@@ -1,6 +1,6 @@
 {
   "name": "capacitor-gray-geolocation",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "A geolocation plugin for CapacitorJS",
   "main": "dist/plugin.js",
   "module": "dist/esm/index.js",
