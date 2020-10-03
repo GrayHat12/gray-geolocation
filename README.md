@@ -18,12 +18,13 @@ Geolocation plugin that uses the fused location service instead of the native AP
 
 Getting a location under android is quite difficult. The standard API implemented now in capacitor returns the GPS provider which results in never getting a position indoors. This is not the case under iOS. A better way under Android is the [FusedLocationProvider](https://developers.google.com/android/reference/com/google/android/gms/location/FusedLocationProviderClient) which already handles that.
 
-This Plugin also has method calls to turn of location.
+This Plugin also has method calls to turn on location.
 
 
 ## Supported platforms
 
 - Android
+- Web
 
 ## Android setup
 
