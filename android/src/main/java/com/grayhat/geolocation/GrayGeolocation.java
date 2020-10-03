@@ -3,10 +3,13 @@ package com.grayhat.geolocation;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 
@@ -28,6 +31,9 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.RuntimeExecutionException;
 import com.google.android.gms.tasks.Task;
 
 
@@ -39,34 +45,99 @@ import com.google.android.gms.tasks.Task;
 public class GrayGeolocation extends Plugin {
     protected final static int REQUEST_CHECK_SETTING = 13451;
     protected final static String TAG = "GGEO";
+    FusedLocationProviderClient fusedLocationProviderClient = null;
+    Location previousLocation = null;
+    int I = 10101;
 
     @PluginMethod
     public void turnLocationOn(PluginCall call) {
         saveCall(call);
-        //pluginRequestAllPermissions();
-        if (!hasRequiredPermissions()) {
+        if(!hasRequiredPermissions()) {
             pluginRequestAllPermissions();
-        } else {
+        }else {
             askPermission();
         }
-        ;
     }
 
     @PluginMethod
     public void getCurrentPosition(PluginCall call) {
-        saveCall(call);
-        //pluginRequestAllPermissions();
-        //askPermission();
-        returnCoords();
+        if(!hasRequiredPermissions()) {
+            pluginRequestAllPermissions();
+        }
+        else{
+            getLocation(call);
+        }
     }
 
     @SuppressLint("MissingPermission")
-    private void returnCoords() {
-        final PluginCall call = getSavedCall();
-        FusedLocationProviderClient fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient((Activity) getContext());
+    private  void getLocation(final PluginCall pluginCall) {
+        if(fusedLocationProviderClient == null) {
+            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient((Activity)getContext());
+        }
+        if(previousLocation != null) {
+            JSObject object = new JSObject();
+            object.put("longitude",previousLocation.getLongitude());
+            object.put("latitude",previousLocation.getLatitude());
+            pluginCall.success(object);
+            return;
+        }
+        LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        assert locationManager != null;
+        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+                @Override
+                public void onComplete(@NonNull Task<Location> task) {
+                    previousLocation = task.getResult();
+                    if(previousLocation != null) {
+                        JSObject object = new JSObject();
+                        object.put("longitude",previousLocation.getLongitude());
+                        object.put("latitude",previousLocation.getLatitude());
+                        pluginCall.success(object);
+                    } else {
+                        LocationRequest locationRequest = new LocationRequest()
+                                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                                .setInterval(10000)
+                                .setFastestInterval(1000)
+                                .setNumUpdates(1);
+                        LocationCallback locationCallback = new LocationCallback(){
+                            @Override
+                            public void onLocationResult(LocationResult locationResult) {
+                                previousLocation = locationResult.getLastLocation();
+                                if(previousLocation != null) {
+                                    JSObject object = new JSObject();
+                                    object.put("longitude",previousLocation.getLongitude());
+                                    object.put("latitude",previousLocation.getLatitude());
+                                    pluginCall.success(object);
+                                }else {
+                                    pluginCall.error("No Location Found L111");
+                                }
+                            }
+                        };
+                        fusedLocationProviderClient.requestLocationUpdates(locationRequest,locationCallback, Looper.myLooper());
+                        //pluginCall.error("No Location Found L82");
+                    }
+                }
+            });
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void returnCoords(final PluginCall call) {
+
+        if(fusedLocationProviderClient == null) {
+            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient((Activity)getContext());
+        }
+
+        if (previousLocation != null) {
+            JSObject object = new JSObject();
+            object.put("longitude",previousLocation.getLongitude());
+            object.put("latitude",previousLocation.getLatitude());
+            call.success(object);
+            return;
+        }
 
         if (hasRequiredPermissions()) {
-            LocationRequest mLocationRequest = LocationRequest.create();
+            /*LocationRequest mLocationRequest = LocationRequest.create();
             mLocationRequest.setInterval(60000);
             mLocationRequest.setFastestInterval(5000);
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -75,17 +146,74 @@ public class GrayGeolocation extends Plugin {
                 public void onLocationResult(LocationResult locationResult) {
                     super.onLocationResult(locationResult);
                     Location location = locationResult.getLocations().get(0);
-                    if (location != null) {
+                    previousLocation = location;
+                    if (previousLocation != null) {
                         JSObject object = new JSObject();
-                        object.put("longitude",location.getLongitude());
-                        object.put("latitude",location.getLatitude());
+                        object.put("longitude",previousLocation.getLongitude());
+                        object.put("latitude",previousLocation.getLatitude());
                         call.success(object);
-                    }else {
-                        call.reject("Some error occured");
+                        return;
+                    }
+                    call.error("location not found");
+                }
+            };*/
+            //fusedLocationProviderClient.requestLocationUpdates(mLocationRequest,mLocationCallback,null);
+            final Task<Location> locationTask = fusedLocationProviderClient.getCurrentLocation(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,null);
+            locationTask.addOnCompleteListener(new OnCompleteListener<Location>() {
+                @Override
+                public void onComplete(@NonNull Task<Location> task) {
+                    previousLocation = task.getResult();
+                    Logger.debug(TAG,"Task COmpleted");
+                    if (call.isReleased()) return;
+                    if (previousLocation != null) {
+                        JSObject object = new JSObject();
+                        object.put("longitude",previousLocation.getLongitude());
+                        object.put("latitude",previousLocation.getLatitude());
+                        call.success(object);
+                        return;
+                    }
+                    call.error("location not found");
+                    //returnCoords(call);
+                }
+            });
+            locationTask.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    call.error("Location Not Found");
+                }
+            });
+            locationTask.addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    Logger.debug(TAG,"Location Success");
+                    if (call.isReleased()) return;
+                    if (location != null) {
+                        previousLocation = location;
+                        JSObject object = new JSObject();
+                        object.put("longitude", previousLocation.getLongitude());
+                        object.put("latitude", previousLocation.getLatitude());
+                        call.success(object);
+                    } else {
+                        call.error("Got an error");
                     }
                 }
-            };
-            fusedLocationProviderClient.requestLocationUpdates(mLocationRequest,mLocationCallback,null);
+            });
+            try {
+                Location location = locationTask.getResult();
+                if (location != null) {
+                    previousLocation = location;
+                    JSObject object = new JSObject();
+                    object.put("longitude",previousLocation.getLongitude());
+                    object.put("latitude",previousLocation.getLatitude());
+                    call.success(object);
+                }
+            }catch (IllegalStateException ex) {
+                Logger.debug(TAG,"Fetching Location");
+            }
+            catch (RuntimeExecutionException ex) {
+                ex.printStackTrace();
+                call.error("Location Not Found 137");
+            }
             /*fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
                 @Override
                 public void onComplete(@NonNull Task<Location> task) {
@@ -118,11 +246,20 @@ public class GrayGeolocation extends Plugin {
         for(int result: grantResults) {
             if(result == PackageManager.PERMISSION_DENIED) {
                 Logger.debug("Test", "User denied Permission");
+                savedCall.error("User Denied Permission");
                 return;
             }
         }
         if (requestCode == REQUEST_CHECK_SETTING) {
-            askPermission();
+            if(savedCall.getMethodName().equals("getCurrentPosition")) {
+                //returnCoords(savedCall);
+                getLocation(savedCall);
+            } else if(savedCall.getMethodName().equals("turnLocationOn")) {
+                askPermission();
+            } else {
+                savedCall.resolve();
+                savedCall.release(bridge);
+            }
         }
     }
 
