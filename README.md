@@ -20,40 +20,82 @@ Getting a location under android is quite difficult. The standard API implemente
 
 This Plugin also has method calls to turn on location.
 
+--------------------
 
 ## Supported platforms
 
 - Android
 - Web
 
-## Android setup
+--------------------
 
-- `npm i capacitor-gray-geolocation`
-- `ionic build`
-- `npx cap copy`
-- `npx cap sync`
-- `npx cap open android`
-- `[extra step]` in android case we need to tell Capacitor to initialise the plugin:
+## Install
 
-> on your `MainActivity.java` file add `import com.grayhat.geolocation.GrayGeolocation;` and then inside the init callback `add(GrayGeolocation.class);`
+```bash
+npm install capacitor-gray-geolocation
+npx cap sync
+```
 
-Now you should be set to go. Try to run your client using `npx cap open android`.
+--------------------
 
-> Tip: every time you change a native code you may need to clean up the cache (Build > Clean Project | Build > Rebuild Project) and then run the app again.
+## API
+
+<docgen-index>
+
+* [`turnLocationOn()`](#turnlocationon)
+* [`getCurrentPosition()`](#getcurrentposition)
+
+</docgen-index>
+
+<docgen-api>
+<!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
+
+### turnLocationOn()
+
+```typescript
+turnLocationOn() => Promise<{ res: boolean; }>
+```
+
+This prompts the user on android to turn location on.
+Firtstly checks for location permissions and if they are not granted, it prompts the user to grant permissions.
+Always returns `{res: true}` for web.
+Not implemented on iOS.
+
+**Returns:** <code>Promise&lt;{ res: boolean; }&gt;</code>
+
+--------------------
+
+
+### getCurrentPosition()
+
+```typescript
+getCurrentPosition() => Promise<{ latitude: number; longitude: number; }>
+```
+
+Returns current position of the device.
+Firtstly checks for location permissions and if they are not granted, it prompts the user to grant permissions.
+Not implemented on iOS.
+
+**Returns:** <code>Promise&lt;{ latitude: number; longitude: number; }&gt;</code>
+
+--------------------
+
+</docgen-api>
+
 
 ## Example
 
 ```js
-import { Plugins } from "@capacitor/core";
-import "capacitor-gray-geolocation";
+// Inside the Ionic code
 
-const { GrayGeolocation } = Plugins;
+import { Device } from "@capacitor/device";
+import { GrayGeolocation } from "capacitor-gray-geolocation";
 
 // ...code
 
 //function to get location (handle errors yourself) 
 getLocation = async() => {
-    let deviceInfo = await Plugins.Device.getInfo();
+    let deviceInfo = await Device.getInfo();
     if(deviceInfo.platform === "ios") {
         //use the capacitor Plugins.Geolocation for geolocation
         return;
@@ -70,8 +112,26 @@ getLocation = async() => {
 }
 ```
 
+```java
+// Inside the Android code (MainActivity.java)
+
+// ... imports
+import com.gray.plugins.capacitor.GrayGeolocationPlugin;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // ... register other plugins if any
+        registerPlugin(GrayGeolocationPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+}
+```
+
+--------------------
+
 ## Testing
 
 Manually tested against the following platforms:
 
-- Android device 10.0 (API Level 29)
+* Android device 11.0 (API Level 30)

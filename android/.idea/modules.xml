@@ -2,8 +2,14 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android.iml" filepath="$PROJECT_DIR$/.idea/modules/android.iml" group="android" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/386243301/capacitor-android.iml" filepath="$PROJECT_DIR$/.idea/modules/386243301/capacitor-android.iml" group="android/capacitor-android" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android.iml" filepath="$PROJECT_DIR$/.idea/modules/android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/android.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1067233984/android.capacitor-android.iml" filepath="$PROJECT_DIR$/.idea/modules/-1067233984/android.capacitor-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1067233984/android.capacitor-android.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-1067233984/android.capacitor-android.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1067233984/android.capacitor-android.main.iml" filepath="$PROJECT_DIR$/.idea/modules/-1067233984/android.capacitor-android.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1067233984/android.capacitor-android.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/-1067233984/android.capacitor-android.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android.main.iml" filepath="$PROJECT_DIR$/.idea/modules/android.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/android.unitTest.iml" />
     </modules>
   </component>
 </project>
