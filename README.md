@@ -2,7 +2,7 @@
 
 <p align="center">
     <a href="https://www.npmjs.com/package/capacitor-gray-geolocation">
-        <img src="https://badge.fury.io/js/capacitor-gray-geolocation.svg" alt="npm version" />
+        <img src="https://badge.fury.io/js/capacitor-gray-geolocation.svg?kill_cache=1" alt="npm version" />
     </a>
         <a href="https://snyk.io/test/npm/capacitor-gray-geolocation">
             <img src="https://snyk.io/test/npm/capacitor-gray-geolocation/badge.svg" alt="Known Vulnerabilities" />
